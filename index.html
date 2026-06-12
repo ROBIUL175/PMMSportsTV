@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sports TV Live</title>
+<title>Robiul Rahman Sports TV Live</title>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
@@ -16,313 +16,187 @@
 }
 
 body{
-    background:#050505;
-    color:#fff;
+    background:#0f172a;
+    color:white;
 }
 
 .header{
-    background:linear-gradient(90deg,#7a0019,#c0002f);
-    text-align:center;
+    background:#111827;
     padding:15px;
-    font-size:30px;
+    text-align:center;
+    font-size:24px;
     font-weight:bold;
-}
-
-.scoreboard{
-    background:#111;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:20px;
-    padding:12px;
-    border-bottom:2px solid #c0002f;
-}
-
-.live{
-    background:red;
-    padding:4px 10px;
-    border-radius:4px;
-    font-size:13px;
 }
 
 .container{
     display:flex;
-    height:calc(100vh - 108px);
-}
-
-.sidebar{
-    width:250px;
-    background:#0f0f0f;
-    border-right:1px solid #222;
-    overflow-y:auto;
-}
-
-.channel{
+    flex-wrap:wrap;
+    gap:15px;
     padding:15px;
-    border-bottom:1px solid #222;
-    cursor:pointer;
-    transition:.3s;
 }
 
-.channel:hover{
-    background:#c0002f;
+.player-section{
+    flex:3;
+    min-width:300px;
 }
 
-.channel.active{
-    background:#c0002f;
-}
-
-.main{
-    flex:1;
-    position:relative;
+.video-container{
     background:#000;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 0 15px rgba(0,0,0,.5);
 }
 
 video{
     width:100%;
-    height:100%;
+    height:70vh;
     background:#000;
 }
 
-.settings-btn{
-    position:absolute;
-    top:15px;
-    right:15px;
-    width:45px;
-    height:45px;
-    border:none;
-    border-radius:50%;
-    font-size:20px;
-    cursor:pointer;
-    background:rgba(0,0,0,.7);
-    color:#fff;
-}
-
-.settings{
-    position:absolute;
-    top:70px;
-    right:15px;
-    width:180px;
-    background:#111;
-    border:1px solid #333;
-    border-radius:8px;
-    display:none;
-    overflow:hidden;
-}
-
-.settings h3{
-    padding:10px;
-    background:#1d1d1d;
-    font-size:14px;
-}
-
-.settings button{
-    width:100%;
-    padding:10px;
-    background:none;
-    color:white;
-    border:none;
-    text-align:left;
-    cursor:pointer;
-}
-
-.settings button:hover{
-    background:#222;
-}
-
-.clock{
-    position:absolute;
-    bottom:20px;
-    left:20px;
-    background:rgba(0,0,0,.8);
-    padding:10px 15px;
-    border-radius:8px;
-    font-size:20px;
-}
-
-@media(max-width:900px){
-
-.container{
-    flex-direction:column;
+.channel-name{
+    padding:12px;
+    background:#111827;
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
 }
 
 .sidebar{
-    width:100%;
-    display:flex;
-    overflow-x:auto;
-    overflow-y:hidden;
+    flex:1;
+    min-width:250px;
 }
 
 .channel{
-    min-width:180px;
-    text-align:center;
+    background:#1e293b;
+    padding:15px;
+    margin-bottom:10px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.3s;
+    border:1px solid #334155;
 }
+
+.channel:hover{
+    background:#334155;
+    transform:translateY(-2px);
+}
+
+.channel.active{
+    background:#2563eb;
+}
+
+.status{
+    text-align:center;
+    padding:10px;
+    color:#94a3b8;
 }
 </style>
 </head>
 <body>
 
-<div class="header" id="title">
-DD SPORTS LIVE
-</div>
-
-<div class="scoreboard">
-<div>⚽ SPORTS TV</div>
-<div class="live">LIVE</div>
+<div class="header">
+📺Robiul Sports TV Live
 </div>
 
 <div class="container">
 
+<div class="player-section">
+    <div class="video-container">
+        <video id="video" controls autoplay></video>
+        <div class="channel-name" id="channelName">
+            Select a Channel
+        </div>
+    </div>
+</div>
+
 <div class="sidebar">
 
-<div class="channel active"
-onclick="loadChannel(this,'DD Sports',
-'https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index.m3u8')">
+<div class="channel"
+onclick="loadChannel(this,'Caze TV','https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8')">
+📺 Caze TV
+</div>
+
+<div class="channel"
+onclick="loadChannel(this,'T Sports','http://rgkkw.live:80/live/1Aoen7elp5/IgMJ60tmAa/130714.ts')">
+🏆 T Sports
+</div>
+
+<div class="channel"
+onclick="loadChannel(this,'PTV Sports','https://tvsen5.aynaott.com/PtvSports/index.m3u8')">
+⚽ PTV Sports
+</div>
+
+<div class="channel"
+onclick="loadChannel(this,'T Sports 2','http://103.59.176.72:8083/live1/tracks-v1a1/mono.m3u8?token=123')">
+🏅 T Sports 2
+</div>
+
+<div class="channel"
+onclick="loadChannel(this,'beIN Sports 1','https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8')">
+🔥 beIN Sports 1
+</div>
+
+<div class="channel"
+onclick="loadChannel(this,'Win Sports','https://1nyaler.streamhostingcdn.top/stream/32/index.m3u8')">
+🎯 Win Sports
+</div>
+
+<div class="channel"
+onclick="loadChannel(this,'DD Sports','https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index.m3u8')">
 📺 DD Sports
 </div>
 
 <div class="channel"
-onclick="loadChannel(this,'D Sports HD',
-'http://217.26.190.76:8888/play/a0jb/index.m3u8')">
+onclick="loadChannel(this,'D Sports HD','http://217.26.190.76:8888/play/a0jb/index.m3u8')">
 🏆 D Sports HD
 </div>
 
 <div class="channel"
-onclick="loadChannel(this,'D Sports',
-'http://190.117.20.37:8000/play/a08d/index.m3u8')">
+onclick="loadChannel(this,'D Sports','http://190.117.20.37:8000/play/a08d/index.m3u8')">
 ⚽ D Sports
 </div>
 
 </div>
 
-<div class="main">
-
-<video id="video" controls autoplay playsinline></video>
-
-<button class="settings-btn" onclick="toggleMenu()">⚙</button>
-
-<div class="settings" id="menu">
-<h3>Quality</h3>
-<div id="qualityList">
-<button>Auto</button>
-</div>
 </div>
 
-<div class="clock" id="clock">
-00:00
-</div>
-
-</div>
-
+<div class="status">
+  © 2026 RobiulRahman. All Rights Reserved..
 </div>
 
 <script>
-
 let hls;
 
-function toggleMenu(){
-    const menu=document.getElementById("menu");
-    menu.style.display=
-    menu.style.display==="block"?"none":"block";
-}
+function loadChannel(element,name,url){
 
-function loadChannel(el,name,url){
+    document.querySelectorAll('.channel').forEach(c=>{
+        c.classList.remove('active');
+    });
 
-    document.getElementById("title").innerHTML=
-    name.toUpperCase()+" LIVE";
+    element.classList.add('active');
 
-    document.querySelectorAll(".channel")
-    .forEach(c=>c.classList.remove("active"));
+    document.getElementById('channelName').textContent = name;
 
-    el.classList.add("active");
-
-    const video=document.getElementById("video");
+    const video = document.getElementById('video');
 
     if(hls){
         hls.destroy();
     }
 
     if(Hls.isSupported()){
-
-        hls=new Hls({
-            enableWorker:true
-        });
-
+        hls = new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED,function(){
-
-            const qualityList=
-            document.getElementById("qualityList");
-
-            qualityList.innerHTML="";
-
-            const autoBtn=
-            document.createElement("button");
-
-            autoBtn.innerText="Auto";
-
-            autoBtn.onclick=()=>{
-                hls.currentLevel=-1;
-            };
-
-            qualityList.appendChild(autoBtn);
-
-            hls.levels.forEach((level,index)=>{
-
-                const btn=
-                document.createElement("button");
-
-                const label=
-                level.height
-                ? level.height+"p"
-                : "Level "+index;
-
-                btn.innerText=label;
-
-                btn.onclick=()=>{
-                    hls.currentLevel=index;
-                };
-
-                qualityList.appendChild(btn);
-
-            });
-
-            video.play().catch(()=>{});
-
+            video.play();
         });
-
-    }else if(
-        video.canPlayType(
-        'application/vnd.apple.mpegurl'
-        )
-    ){
-        video.src=url;
+    }
+    else if(video.canPlayType('application/vnd.apple.mpegurl')){
+        video.src = url;
+        video.play();
     }
 }
-
-loadChannel(
-document.querySelector(".channel"),
-"DD Sports",
-"https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index.m3u8"
-);
-
-let seconds=0;
-
-setInterval(()=>{
-seconds++;
-
-let m=Math.floor(seconds/60);
-let s=seconds%60;
-
-document.getElementById("clock").innerHTML=
-String(m).padStart(2,"0")
-+":"
-+String(s).padStart(2,"0");
-
-},1000);
-
 </script>
 
 </body>
