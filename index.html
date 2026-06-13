@@ -1227,8 +1227,11 @@ function renderChannels() {
     `).join("");
 }
 
+let errorCount = 0;
+const SECURE_FALLBACK = "https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8";
+
 // Channel Selection handler & HLS player setup
-function selectChannel(channelId) {
+function selectChannel(channelId, isRetry = false) {
     const ch = channels.find(c => c.id === channelId);
     if (!ch) return;
     
@@ -1255,12 +1258,25 @@ function selectChannel(channelId) {
         hls.destroy();
     }
     
+    if (!isRetry) {
+        errorCount = 0;
+    }
+    
+    let targetUrl = ch.url;
+    // Auto-upgrade insecure raw IP streams if current page is secure HTTPS
+    if (window.location.protocol === "https:" && targetUrl.startsWith("http://198.195.239.50")) {
+        targetUrl = SECURE_FALLBACK;
+        setTimeout(() => showFallbackToast(ch.name), 500);
+    }
+    
     if (Hls.isSupported()) {
         hls = new Hls({
             maxMaxBufferLength: 10,
-            enableWorker: true
+            enableWorker: true,
+            manifestLoadingTimeOut: 5000,
+            manifestLoadingMaxRetry: 2
         });
-        hls.loadSource(ch.url);
+        hls.loadSource(targetUrl);
         hls.attachMedia(video);
         
         hls.on(Hls.Events.MANIFEST_PARSED, function() {
@@ -1273,32 +1289,82 @@ function selectChannel(channelId) {
         // Dynamic fallback error handler
         hls.on(Hls.Events.ERROR, function(event, data) {
             if (data.fatal) {
-                switch(data.type) {
-                    case Hls.ErrorTypes.NETWORK_ERROR:
-                        console.log("HLS network error, attempting recovery...");
-                        hls.startLoad();
-                        break;
-                    case Hls.ErrorTypes.MEDIA_ERROR:
-                        console.log("HLS media error, attempting recovery...");
-                        hls.recoverMediaError();
-                        break;
-                    default:
-                        console.log("HLS player fatal error, falling back...");
-                        hls.destroy();
-                        playBtn.classList.remove("hidden");
-                        break;
+                errorCount++;
+                if (errorCount < 2) {
+                    switch(data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            console.log("HLS network error, attempting recovery...");
+                            hls.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.log("HLS media error, attempting recovery...");
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            fallbackStream();
+                            break;
+                    }
+                } else {
+                    fallbackStream();
                 }
             }
         });
     }
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         // Native Safari HLS support
-        video.src = ch.url;
+        video.src = targetUrl;
         video.play().catch(e => {
             console.log("Auto-play blocked, showing center play button overlay", e);
             playBtn.classList.remove("hidden");
         });
+        
+        video.onerror = function() {
+            errorCount++;
+            if (errorCount < 2) {
+                fallbackStream();
+            }
+        };
     }
+    
+    function fallbackStream() {
+        console.log("Fatal playback error. Loading secure fallback stream...");
+        errorCount = 0;
+        if (hls) hls.destroy();
+        
+        if (Hls.isSupported()) {
+            hls = new Hls();
+            hls.loadSource(SECURE_FALLBACK);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play();
+            });
+        } else {
+            video.src = SECURE_FALLBACK;
+            video.play();
+        }
+        showFallbackToast(ch.name);
+    }
+}
+
+// Fallback toast notifier
+function showFallbackToast(channelName) {
+    const toast = document.getElementById("toast");
+    const originalContent = toast.innerHTML;
+    toast.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #f59e0b">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        ${channelName} feed offline. Loading secure backup stream...
+    `;
+    toast.classList.add("show");
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+            toast.innerHTML = originalContent;
+        }, 300);
+    }, 4500);
 }
 
 // Center play overlay helper
