@@ -1,217 +1,1331 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Robiul Rahman Sports TV Live</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robiul Sports TV Live</title>
+    
+    <!-- Google Font for Premium UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- hls.js for HLS playback support in non-Safari browsers -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <style>
+        :root {
+            --bg-main: #0a0a0c;
+            --bg-sidebar: #121215;
+            --bg-card: #1c1c20;
+            --bg-card-hover: #26262b;
+            --accent-pink: #ec4899;
+            --accent-pink-hover: #db2777;
+            --text-main: #ffffff;
+            --text-secondary: #71717a;
+            --border-card: #27272a;
+            --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
 
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
-}
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-body{
-    background:#0f172a;
-    color:white;
-}
+        /* Main app layout wrapper */
+        .app-container {
+            display: flex;
+            flex: 1;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-.header{
-    background:#111827;
-    padding:15px;
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
-}
+        /* Player panel layout */
+        .player-section {
+            flex: 1.8;
+            background-color: #000;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
 
-.container{
-    display:flex;
-    flex-wrap:wrap;
-    gap:15px;
-    padding:15px;
-}
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.player-section{
-    flex:3;
-    min-width:300px;
-}
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background-color: #000;
+        }
 
-.video-container{
-    background:#000;
-    border-radius:12px;
-    overflow:hidden;
-    box-shadow:0 0 15px rgba(0,0,0,.5);
-}
+        /* Video overlay styled exactly as screenshot */
+        .player-overlay-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 24px 30px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10;
+        }
 
-video{
-    width:100%;
-    height:70vh;
-    background:#000;
-}
+        .player-channel-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: #ffffff;
+            text-transform: uppercase;
+            pointer-events: auto;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            letter-spacing: 0.5px;
+        }
 
-.channel-name{
-    padding:12px;
-    background:#111827;
-    text-align:center;
-    font-size:18px;
-    font-weight:bold;
-}
+        .download-btn {
+            background-color: var(--accent-pink);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-.sidebar{
-    flex:1;
-    min-width:250px;
-}
+        .download-btn:hover {
+            background-color: var(--accent-pink-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(236, 72, 153, 0.45);
+        }
 
-.channel{
-    background:#1e293b;
-    padding:15px;
-    margin-bottom:10px;
-    border-radius:10px;
-    cursor:pointer;
-    transition:.3s;
-    border:1px solid #334155;
-}
+        .download-btn:active {
+            transform: translateY(1px);
+        }
 
-.channel:hover{
-    background:#334155;
-    transform:translateY(-2px);
-}
+        /* Sidebar panel layout */
+        .sidebar {
+            width: 480px;
+            background-color: var(--bg-sidebar);
+            border-left: 1px solid #1f1f24;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
 
-.channel.active{
-    background:#2563eb;
-}
+        .sidebar-header {
+            padding: 20px 20px 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-bottom: 1px solid #1c1c20;
+        }
 
-.status{
-    text-align:center;
-    padding:10px;
-    color:#94a3b8;
-}
-</style>
+        /* Search input styling */
+        .search-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #1a1a1e;
+            border: 1px solid #2d2d34;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.15);
+            background-color: #202025;
+        }
+
+        .search-input::placeholder {
+            color: #52525b;
+        }
+
+        /* Categories horizontal scrolling menu */
+        .categories-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+
+        .categories-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-chip {
+            background-color: #1a1a1e;
+            color: var(--text-main);
+            border: 1px solid #2d2d34;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-chip:hover {
+            border-color: #3f3f46;
+            background-color: #27272a;
+        }
+
+        .category-chip.active {
+            background-color: var(--accent-pink);
+            border-color: var(--accent-pink);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.25);
+        }
+
+        /* Channel grid container */
+        .channels-grid-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px 20px 20px;
+        }
+
+        .channels-grid-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .channels-grid-container::-webkit-scrollbar-track {
+            background: var(--bg-sidebar);
+        }
+
+        .channels-grid-container::-webkit-scrollbar-thumb {
+            background: #2d2d34;
+            border-radius: 3px;
+        }
+
+        .channels-grid-container::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+
+        /* 5-Column Grid */
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        /* Channel tile styling */
+        .channel-card {
+            background-color: var(--bg-card);
+            border: 1.5px solid transparent;
+            border-radius: 12px;
+            padding: 12px 5px 10px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            aspect-ratio: 1 / 1.05;
+        }
+
+        .channel-card:hover {
+            background-color: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+
+        .channel-card.active {
+            border-color: var(--accent-pink);
+            background-color: #1a1a24;
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.2);
+        }
+
+        /* Channel circular badge logo */
+        .logo-circle {
+            width: 48px;
+            height: 48px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 8px;
+            padding: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease;
+        }
+
+        .channel-card:hover .logo-circle {
+            transform: scale(1.05);
+        }
+
+        .logo-circle svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .channel-title {
+            font-size: 8.5px;
+            font-weight: 700;
+            color: #e4e4e7;
+            text-align: center;
+            line-height: 1.2;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        /* Big center play icon overlay when loading/paused */
+        .center-play-btn {
+            position: absolute;
+            width: 76px;
+            height: 76px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: auto;
+        }
+
+        .center-play-btn::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 0;
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+            border-left: 22px solid #000;
+            margin-left: 6px;
+        }
+
+        .center-play-btn:hover {
+            transform: scale(1.1);
+            background-color: #ffffff;
+            box-shadow: 0 6px 24px rgba(255, 255, 255, 0.2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* App Branding header style */
+        .brand-title {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            padding-left: 2px;
+        }
+        
+        .brand-icon {
+            -webkit-text-fill-color: initial;
+        }
+
+        /* Attribution footer */
+        .sidebar-footer {
+            padding: 12px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+            border-top: 1px solid #1c1c20;
+            background-color: var(--bg-sidebar);
+            font-weight: 500;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translate(-50%, -20px);
+            background-color: #1c1c20;
+            border-left: 4px solid var(--accent-pink);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* Responsive Layouts */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 420px;
+            }
+            .channels-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+            }
+            .app-container {
+                flex-direction: column;
+                height: auto;
+                overflow: visible;
+            }
+            .player-section {
+                height: 56.25vw;
+                min-height: 300px;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-left: none;
+                border-top: 1px solid #1f1f24;
+            }
+            .channels-grid-container {
+                overflow-y: visible;
+                height: auto;
+            }
+            .channels-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .channels-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .player-channel-title {
+                font-size: 20px;
+            }
+            .download-btn {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .channels-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
 </head>
 <body>
 
-<div class="header">
-📺Robiul Sports TV Live
-</div>
-
-<div class="container">
-
-<div class="player-section">
-    <div class="video-container">
-        <video id="video" controls autoplay></video>
-        <div class="channel-name" id="channelName">
-            Select a Channel
+<div class="app-container">
+    <!-- Player Panel -->
+    <div class="player-section">
+        <div class="video-wrapper">
+            <video id="video" autoplay controls></video>
+            
+            <!-- Centralized playback overlay button -->
+            <div id="centerPlayBtn" class="center-play-btn hidden" onclick="togglePlay()"></div>
+            
+            <!-- Exact overlay title & action button matching image -->
+            <div class="player-overlay-bottom">
+                <div class="player-channel-title" id="playerChannelTitle">SELECT A CHANNEL</div>
+                <button class="download-btn" onclick="showDownloadToast()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download App
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar Panel -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <!-- App Branding Header -->
+            <div class="brand-title">
+                <span class="brand-icon">📺</span> ROBIUL SPORTS TV
+            </div>
+            
+            <!-- Search bar -->
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search channels..." oninput="handleSearch()">
+            </div>
+            
+            <!-- Category Chip Selector -->
+            <div class="categories-container" id="categoriesContainer">
+                <!-- Dynamically Rendered -->
+            </div>
+        </div>
+        
+        <!-- Channels scroll container -->
+        <div class="channels-grid-container">
+            <div class="channels-grid" id="channelsGrid">
+                <!-- Dynamically Rendered Grid -->
+            </div>
+        </div>
+        
+        <!-- Subtle branding status / footer -->
+        <div class="sidebar-footer">
+            © 2026 Robiul Sports TV. All Rights Reserved.
         </div>
     </div>
 </div>
 
-<div class="sidebar">
-
-<div class="channel"
-onclick="loadChannel(this,'Caze TV','https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8')">
-📺 Caze TV
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'T Sports','http://rgkkw.live/live/1Aoen7elp5/IgMJ60tmAa/130714.ts')">
-🏆 T Sports
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'PTV Sports','https://tvsen5.aynaott.com/PtvSports/index.m3u8')">
-⚽ PTV Sports
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'beIN Sports 1','https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8')">
-🔥 beIN Sports 1
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'Win Sports','https://1nyaler.streamhostingcdn.top/stream/32/index.m3u8')">
-🎯 Win Sports
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'DD Sports','https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index.m3u8')">
-📺 DD Sports
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'D Sports HD','http://217.26.190.76:8888/play/a0jb/index.m3u8')">
-🏆 D Sports HD
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'Toffee 1080p','https://toffee-seg.smartdev.workers.dev/manifest?url=https%3A%2F%2Fprod-cdn01-live.toffeelive.com%2Flive%2FFIFA-2026%2F0%2Fmaster_3500.m3u8&cookie=%22Expires%3D1781372565~_GO%3DGenerated~URLPrefix%3DaHR0cHM6Ly9wcm9kLWNkbjAxLWxpdmUudG9mZmVlbGl2ZS5jb20~Signature%3DAaPNU3dPJyjCWl9uqYUhckb0fdg7RP-kLcuSqR5V5pjo62P2P2iQTcyTjpVuuIIP9NLcdW0VA1Z9_6NVwI2H36GyJbAC%22')">
-⚽ Toffee 1080p
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'4k Hdr 60Fps','http://go8knm.optikl.ink/X/index.php/Besyria3/video.m3u8')">
-⚽ 4k Hdr 60Fps
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'BeIN Sports 4K Max','https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8')">
-⚽ BeIN Sports 4K Max
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'Gopal Bhar','https://live20.bozztv.com/giatvplayout7/giatv-209611/tracks-v1a1/mono.ts.m3u8')">
-📿🛕 Gopal Bhar
-</div>
-
-<div class="channel"
-onclick="loadChannel(this,'Gopal Bhar','https://fifa-world-cup-live.pages.dev/caze-tv')">
-⚽ Caze Tv Youtube
-</div>
-
-</div>
-
-</div>
-
-<div class="status">
-  © 2026 RobiulRahman. All Rights Reserved..
+<!-- Premium Floating Toast -->
+<div id="toast" class="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-pink)">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+    Downloading Robiul Sports TV App...
 </div>
 
 <script>
-let hls;
-
-function loadChannel(element,name,url){
-
-    document.querySelectorAll('.channel').forEach(c=>{
-        c.classList.remove('active');
-    });
-
-    element.classList.add('active');
-
-    document.getElementById('channelName').textContent = name;
-
-    const video = document.getElementById('video');
-
-    if(hls){
-        hls.destroy();
+// Channel Dataset matching image layout and categories
+const channels = [
+    {
+        id: "tsports",
+        name: "TSPORTS HD",
+        category: "Sports",
+        logoColor: "#ef4444",
+        url: "http://198.195.239.50:8095/tsports/tracks-v1a1/mono.m3u8",
+        logoType: "tsports"
+    },
+    {
+        id: "star_sports1",
+        name: "START SPORTS1",
+        category: "Sports",
+        logoColor: "#1e3a8a",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "starsports",
+        logoNum: "1"
+    },
+    {
+        id: "star_sports2",
+        name: "STAR SPORTS2",
+        category: "Sports",
+        logoColor: "#1e3a8a",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "starsports",
+        logoNum: "2"
+    },
+    {
+        id: "star_sports3",
+        name: "STAR SPORTS3",
+        category: "Sports",
+        logoColor: "#1e3a8a",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "starsports",
+        logoNum: "3"
+    },
+    {
+        id: "star_sports_select1",
+        name: "STAR SPORTS SELECT1 HD",
+        category: "Sports",
+        logoColor: "#d97706",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "starsports_select",
+        logoNum: "1"
+    },
+    {
+        id: "star_sports_select2",
+        name: "STAR SPORTS SELECT2 HD",
+        category: "Sports",
+        logoColor: "#d97706",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "starsports_select",
+        logoNum: "2"
+    },
+    {
+        id: "sony_sports1",
+        name: "SONY SPORTS1 HD",
+        category: "Sports",
+        logoColor: "#09090b",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "sonysports",
+        logoNum: "1"
+    },
+    {
+        id: "sony_sports2",
+        name: "SONY SPORTS2 HD",
+        category: "Sports",
+        logoColor: "#09090b",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "sonysports",
+        logoNum: "2"
+    },
+    {
+        id: "sony_sports3",
+        name: "SONY SPORTS3 HD",
+        category: "Sports",
+        logoColor: "#09090b",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "sonysports",
+        logoNum: "3"
+    },
+    {
+        id: "sony_sports5",
+        name: "SONY SPORTS5 HD",
+        category: "Sports",
+        logoColor: "#09090b",
+        url: "http://198.195.239.50:8095/starSports2/tracks-v1a1/mono.m3u8",
+        logoType: "sonysports",
+        logoNum: "5"
+    },
+    {
+        id: "ptv",
+        name: "PTV",
+        category: "Sports",
+        logoColor: "#15803d",
+        url: "http://198.195.239.50:8095/ptv/tracks-v1a1/mono.m3u8",
+        logoType: "ptv"
+    },
+    {
+        id: "euro_sports",
+        name: "EURO SPORTS HD",
+        category: "Sports",
+        logoColor: "#1e3a8a",
+        url: "http://198.195.239.50:8095/ptv/tracks-v1a1/mono.m3u8",
+        logoType: "eurosport"
+    },
+    {
+        id: "somoy_tv",
+        name: "SHOMOY TV HD",
+        category: "News",
+        logoColor: "#b91c1c",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "somoy"
+    },
+    {
+        id: "channel_24",
+        name: "CHANNEL 24",
+        category: "News",
+        logoColor: "#2563eb",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "c24"
+    },
+    {
+        id: "atn_news",
+        name: "ATN NEWS HD",
+        category: "News",
+        logoColor: "#7c3aed",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "atnnews"
+    },
+    {
+        id: "ekattor_tv",
+        name: "EKATTOR TV HD",
+        category: "News",
+        logoColor: "#dc2626",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "ekattor"
+    },
+    {
+        id: "jamuna_tv",
+        name: "JAMUNA TV",
+        category: "News",
+        logoColor: "#dc2626",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "jamuna"
+    },
+    {
+        id: "atn_bangla",
+        name: "ATN BANGLA HD",
+        category: "Bangla",
+        logoColor: "#059669",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "atnbangla"
+    },
+    {
+        id: "banglavision",
+        name: "BANGLA VISION HD",
+        category: "Bangla",
+        logoColor: "#2563eb",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "banglavision"
+    },
+    {
+        id: "channel_i",
+        name: "CHANNEL I HD",
+        category: "Bangla",
+        logoColor: "#059669",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "channeli"
+    },
+    {
+        id: "ntv",
+        name: "NTV",
+        category: "Bangla",
+        logoColor: "#16a34a",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "ntv"
+    },
+    {
+        id: "deepto_tv",
+        name: "DEEPTO TV",
+        category: "Bangla",
+        logoColor: "#ea580c",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "deepto"
+    },
+    {
+        id: "gtv",
+        name: "GTV",
+        category: "Bangla",
+        logoColor: "#dc2626",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "gtv"
+    },
+    {
+        id: "btv_4k",
+        name: "BTV 4K",
+        category: "Bangla",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "btv"
+    },
+    {
+        id: "star_jalsha",
+        name: "STAR JALSHA HD",
+        category: "Indian Bangla",
+        logoColor: "#dc2626",
+        url: "http://198.195.239.50:8095/starJalsha/tracks-v1a1/mono.m3u8",
+        logoType: "starjalsha"
+    },
+    {
+        id: "zee_bangla",
+        name: "ZEE BANGLA HD",
+        category: "Indian Bangla",
+        logoColor: "#ea580c",
+        url: "http://198.195.239.50:8095/zeeBangla/tracks-v1a1/mono.m3u8",
+        logoType: "zeebangla"
+    },
+    {
+        id: "jalsha_movies",
+        name: "JALSHA MOVIES HD",
+        category: "Indian Bangla",
+        logoColor: "#dc2626",
+        url: "http://198.195.239.50:8095/jalshaMovies/tracks-v1a1/mono.m3u8",
+        logoType: "jalshamovies"
+    },
+    {
+        id: "sony_max",
+        name: "SONY MAX HD",
+        category: "Hindi",
+        logoColor: "#7c3aed",
+        url: "http://198.195.239.50:8095/sonyMax/tracks-v1a1/mono.m3u8",
+        logoType: "sonymax"
+    },
+    {
+        id: "caze_tv",
+        name: "CAZE TV",
+        category: "Sports",
+        logoColor: "#2563eb",
+        url: "https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8",
+        logoType: "cazetv"
+    },
+    {
+        id: "bein_sports1",
+        name: "BEIN SPORTS 1",
+        category: "Sports",
+        logoColor: "#7c3aed",
+        url: "https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8",
+        logoType: "bein"
+    },
+    {
+        id: "win_sports",
+        name: "WIN SPORTS",
+        category: "Sports",
+        logoColor: "#2563eb",
+        url: "https://1nyaler.streamhostingcdn.top/stream/32/index.m3u8",
+        logoType: "win"
+    },
+    {
+        id: "dd_sports",
+        name: "DD SPORTS",
+        category: "Sports",
+        logoColor: "#ea580c",
+        url: "https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index.m3u8",
+        logoType: "dd"
+    },
+    {
+        id: "d_sports",
+        name: "D SPORTS HD",
+        category: "Sports",
+        logoColor: "#dc2626",
+        url: "http://217.26.190.76:8888/play/a0jb/index.m3u8",
+        logoType: "dsports"
+    },
+    {
+        id: "toffee_1080p",
+        name: "TOFFEE 1080P",
+        category: "Sports",
+        logoColor: "#d97706",
+        url: "https://toffee-seg.smartdev.workers.dev/manifest?url=https%3A%2F%2Fprod-cdn01-live.toffeelive.com%2Flive%2FFIFA-2026%2F0%2Fmaster_3500.m3u8&cookie=%22Expires%3D1781372565~_GO%3DGenerated~URLPrefix%3DaHR0cHM6Ly9wcm9kLWNkbjAxLWxpdmUudG9mZmVlbGl2ZS5jb20~Signature%3DAaPNU3dPJyjCWl9uqYUhckb0fdg7RP-kLcuSqR5V5pjo62P2P2iQTcyTjpVuuIIP9NLcdW0VA1Z9_6NVwI2H36GyJbAC%22",
+        logoType: "toffee"
+    },
+    {
+        id: "disney",
+        name: "DISNEY CHANNEL",
+        category: "Kids",
+        logoColor: "#0284c7",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "disney"
+    },
+    {
+        id: "cartoon_network",
+        name: "CARTOON NETWORK",
+        category: "Kids",
+        logoColor: "#000000",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "cn"
+    },
+    {
+        id: "nat_geo",
+        name: "NAT GEO",
+        category: "Doc",
+        logoColor: "#facc15",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "natgeo"
+    },
+    {
+        id: "discovery",
+        name: "DISCOVERY CHANNEL",
+        category: "Doc",
+        logoColor: "#0284c7",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "discovery"
+    },
+    {
+        id: "mtv",
+        name: "MTV HD",
+        category: "Music",
+        logoColor: "#e11d48",
+        url: "http://198.195.239.50:8095/btv/tracks-v1a1/mono.m3u8",
+        logoType: "mtv"
     }
+];
 
-    if(Hls.isSupported()){
-        hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
+// Helper to generate dynamic high-fidelity inline SVGs for all logos
+function getLogoSVG(channel) {
+    const type = channel.logoType;
+    const num = channel.logoNum || "";
+    const name = channel.name;
+    const color = channel.logoColor || "#e11d48";
 
-        hls.on(Hls.Events.MANIFEST_PARSED,function(){
-            video.play();
-        });
-    }
-    else if(video.canPlayType('application/vnd.apple.mpegurl')){
-        video.src = url;
-        video.play();
+    switch (type) {
+        case "tsports":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 22,28 L 78,28 L 78,41 L 57,41 L 57,78 L 43,78 L 43,41 L 22,41 Z" fill="#e11d48"/>
+                <path d="M 72,34 L 80,34 L 80,78 L 72,78 Z" fill="#121215"/>
+                <text x="50" y="90" font-family="'Inter', sans-serif" font-size="9" font-weight="900" text-anchor="middle" fill="#121215">T SPORTS</text>
+            </svg>`;
+
+        case "starsports":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 50,15 L 56,33 L 74,33 L 60,44 L 65,62 L 50,51 L 35,62 L 40,44 L 26,33 L 44,33 Z" fill="#0f172a"/>
+                <path d="M 20,63 Q 50,45 80,63 Q 50,53 20,63 Z" fill="#dc2626"/>
+                <circle cx="78" cy="28" r="13" fill="#0f172a"/>
+                <text x="78" y="33" font-family="'Inter', sans-serif" font-size="13" font-weight="900" text-anchor="middle" fill="#ffffff">${num}</text>
+                <text x="50" y="85" font-family="'Inter', sans-serif" font-size="8.5" font-weight="900" text-anchor="middle" fill="#121215" letter-spacing="0.5">STAR SPORTS</text>
+            </svg>`;
+
+        case "starsports_select":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 50,22 L 54,32 L 65,32 L 56,38 L 60,49 L 50,42 L 40,49 L 44,38 L 35,32 L 46,32 Z" fill="#d97706"/>
+                <text x="50" y="62" font-family="'Inter', sans-serif" font-size="10.5" font-weight="900" text-anchor="middle" fill="#0f172a">SELECT</text>
+                <circle cx="50" cy="80" r="10" fill="#d97706"/>
+                <text x="50" y="84" font-family="'Inter', sans-serif" font-size="11.5" font-weight="900" text-anchor="middle" fill="#ffffff">${num}</text>
+            </svg>`;
+
+        case "sonysports":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="15" y="22" width="70" height="20" rx="3" fill="#000000"/>
+                <text x="50" y="36" font-family="Georgia, serif" font-size="12" font-weight="bold" font-style="italic" text-anchor="middle" fill="#ffffff" letter-spacing="1">SONY</text>
+                <rect x="15" y="46" width="70" height="32" rx="3" fill="#1e3a8a"/>
+                <text x="50" y="62" font-family="'Inter', sans-serif" font-size="10" font-weight="900" text-anchor="middle" fill="#ffffff">SPORTS</text>
+                <text x="50" y="75" font-family="'Inter', sans-serif" font-size="12" font-weight="900" text-anchor="middle" fill="#facc15">${num}</text>
+            </svg>`;
+
+        case "ptv":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="45" r="28" fill="#15803d"/>
+                <path d="M 45,28 A 18,18 0 1 0 65,48 A 14,14 0 1 1 45,28 Z" fill="#ffffff"/>
+                <polygon points="56,32 59,38 65,39 60,43 62,49 56,46 51,49 53,43 48,39 54,38" fill="#ffffff"/>
+                <text x="50" y="88" font-family="'Inter', sans-serif" font-size="11" font-weight="900" text-anchor="middle" fill="#15803d">PTV SPORTS</text>
+            </svg>`;
+
+        case "eurosport":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 25,48 L 75,48 L 75,56 L 25,56 Z" fill="#dc2626"/>
+                <text x="50" y="42" font-family="'Inter', sans-serif" font-size="10" font-weight="900" text-anchor="middle" fill="#0f172a" letter-spacing="0.5">EUROSPORT</text>
+                <path d="M 50,68 L 52,72 L 57,72 L 53,75 L 55,79 L 50,76 L 45,79 L 47,75 L 43,72 L 48,72 Z" fill="#0f172a"/>
+            </svg>`;
+
+        case "somoy":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="15" y="25" width="70" height="36" rx="4" fill="#dc2626"/>
+                <text x="50" y="48" font-family="'Inter', sans-serif" font-weight="900" font-size="16" fill="#ffffff" text-anchor="middle">সময়</text>
+                <rect x="15" y="65" width="70" height="12" rx="2" fill="#eab308"/>
+                <text x="50" y="74" font-family="'Inter', sans-serif" font-weight="900" font-size="8.5" fill="#000000" text-anchor="middle">SOMOY TV</text>
+            </svg>`;
+
+        case "c24":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="46" r="28" fill="#1e3a8a"/>
+                <text x="50" y="56" font-family="'Inter', sans-serif" font-weight="900" font-size="26" fill="#ffffff" text-anchor="middle">24</text>
+                <text x="50" y="86" font-family="'Inter', sans-serif" font-weight="900" font-size="8.5" fill="#dc2626" text-anchor="middle" letter-spacing="1">CHANNEL</text>
+            </svg>`;
+
+        case "atnnews":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <ellipse cx="50" cy="45" rx="28" ry="12" fill="none" stroke="#2563eb" stroke-width="4"/>
+                <ellipse cx="50" cy="45" rx="12" ry="28" fill="none" stroke="#dc2626" stroke-width="4"/>
+                <text x="50" y="85" font-family="'Inter', sans-serif" font-weight="900" font-size="10" fill="#0f172a" text-anchor="middle">ATN NEWS</text>
+            </svg>`;
+
+        case "ekattor":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="45" r="26" fill="#dc2626"/>
+                <text x="50" y="55" font-family="'Inter', sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle">৭১</text>
+                <text x="50" y="85" font-family="'Inter', sans-serif" font-weight="900" font-size="8.5" fill="#000000" text-anchor="middle">EKATTOR TV</text>
+            </svg>`;
+
+        case "jamuna":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="15" y="28" width="70" height="28" rx="4" fill="#b91c1c"/>
+                <text x="50" y="47" font-family="'Inter', sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">JAMUNA</text>
+                <text x="50" y="78" font-family="'Inter', sans-serif" font-weight="900" font-size="13" fill="#000000" text-anchor="middle">TV</text>
+            </svg>`;
+
+        case "atnbangla":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 25,45 L 50,15 L 75,45 Z" fill="#059669"/>
+                <path d="M 25,48 L 50,78 L 75,48 Z" fill="#dc2626"/>
+                <text x="50" y="90" font-family="'Inter', sans-serif" font-weight="900" font-size="8.5" fill="#000" text-anchor="middle">ATN BANGLA</text>
+            </svg>`;
+
+        case "banglavision":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="42" r="22" fill="#1e40af"/>
+                <polygon points="50,28 58,48 38,48" fill="#eab308"/>
+                <text x="50" y="85" font-family="'Inter', sans-serif" font-weight="900" font-size="8.5" fill="#1e40af" text-anchor="middle">BANGLAVISION</text>
+            </svg>`;
+
+        case "channeli":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="42" r="24" fill="#059669"/>
+                <text x="50" y="52" font-family="Georgia, serif" font-weight="bold" font-style="italic" font-size="32" fill="#ffffff" text-anchor="middle">i</text>
+                <text x="50" y="85" font-family="'Inter', sans-serif" font-weight="900" font-size="9" fill="#059669" text-anchor="middle">CHANNEL i</text>
+            </svg>`;
+
+        case "ntv":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 20,25 L 45,25 L 55,60 L 65,25 L 80,25 L 80,75 L 65,75 L 65,40 L 55,75 L 45,75 L 35,40 L 35,75 L 20,75 Z" fill="#16a34a"/>
+                <circle cx="50" cy="72" r="11" fill="#dc2626"/>
+                <text x="50" y="76" font-family="'Inter', sans-serif" font-weight="900" font-size="10.5" fill="#fff" text-anchor="middle">tv</text>
+            </svg>`;
+
+        case "deepto":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="45" r="22" fill="#ea580c"/>
+                <path d="M 50,30 C 58,40 58,55 50,60 C 42,55 42,40 50,30 Z" fill="#facc15"/>
+                <text x="50" y="86" font-family="'Inter', sans-serif" font-weight="900" font-size="10" fill="#ea580c" text-anchor="middle">DEEPTO TV</text>
+            </svg>`;
+
+        case "gtv":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="46" r="28" fill="#dc2626"/>
+                <text x="50" y="58" font-family="'Inter', sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">G</text>
+                <text x="50" y="88" font-family="'Inter', sans-serif" font-weight="900" font-size="9.5" fill="#000" text-anchor="middle">GAZI TV</text>
+            </svg>`;
+
+        case "btv":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="45" r="25" fill="#059669"/>
+                <circle cx="50" cy="45" r="12" fill="#dc2626"/>
+                <text x="50" y="86" font-family="'Inter', sans-serif" font-weight="900" font-size="11" fill="#059669" text-anchor="middle">BTV</text>
+            </svg>`;
+
+        case "starjalsha":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 50,18 L 58,38 L 79,38 L 62,51 L 68,71 L 50,58 L 32,71 L 38,51 L 21,38 L 42,38 Z" fill="#dc2626"/>
+                <circle cx="50" cy="45" r="6" fill="#facc15"/>
+                <text x="50" y="88" font-family="'Inter', sans-serif" font-weight="900" font-size="9.5" fill="#dc2626" text-anchor="middle">STAR JALSHA</text>
+            </svg>`;
+
+        case "zeebangla":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 30,30 L 70,30 L 35,62 L 70,62" fill="none" stroke="#ea580c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                <text x="50" y="88" font-family="'Inter', sans-serif" font-weight="900" font-size="9.5" fill="#ea580c" text-anchor="middle">ZEE BANGLA</text>
+            </svg>`;
+
+        case "jalshamovies":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 50,20 L 58,38 L 79,38 L 62,51 L 68,71 L 50,58 L 32,71 L 38,51 L 21,38 L 42,38 Z" fill="#dc2626"/>
+                <rect x="25" y="60" width="50" height="12" rx="2" fill="#1e3a8a"/>
+                <text x="50" y="69" font-family="'Inter', sans-serif" font-weight="900" font-size="8" fill="#ffffff" text-anchor="middle">MOVIES</text>
+            </svg>`;
+
+        case "sonymax":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="15" y="24" width="70" height="20" rx="3" fill="#000000"/>
+                <text x="50" y="38" font-family="Georgia, serif" font-size="11" font-weight="bold" font-style="italic" text-anchor="middle" fill="#ffffff" letter-spacing="1">SONY</text>
+                <rect x="15" y="48" width="70" height="28" rx="3" fill="#7c3aed"/>
+                <text x="50" y="66" font-family="'Inter', sans-serif" font-size="13" font-weight="900" text-anchor="middle" fill="#facc15">MAX</text>
+            </svg>`;
+
+        case "cazetv":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <path d="M 20,30 L 50,75 L 80,30 Z" fill="#2563eb"/>
+                <text x="50" y="50" font-family="'Inter', sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">CAZE</text>
+            </svg>`;
+
+        case "bein":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="15" y="30" width="70" height="40" rx="6" fill="#7c3aed"/>
+                <text x="50" y="55" font-family="'Inter', sans-serif" font-weight="900" font-size="17" fill="#ffffff" text-anchor="middle">beIN</text>
+            </svg>`;
+
+        case "win":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="15" y="30" width="70" height="40" rx="6" fill="#2563eb"/>
+                <text x="50" y="55" font-family="'Inter', sans-serif" font-weight="900" font-size="17" fill="#ffffff" text-anchor="middle">WIN</text>
+            </svg>`;
+
+        case "dd":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="45" r="22" fill="#ea580c"/>
+                <path d="M 42,35 L 62,45 L 42,55 Z" fill="#ffffff"/>
+                <text x="50" y="85" font-family="'Inter', sans-serif" font-weight="900" font-size="11" fill="#ea580c" text-anchor="middle">DD SPORTS</text>
+            </svg>`;
+
+        case "dsports":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="15" y="30" width="70" height="40" rx="6" fill="#dc2626"/>
+                <text x="50" y="55" font-family="'Inter', sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">D</text>
+            </svg>`;
+
+        case "toffee":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="15" y="30" width="70" height="40" rx="6" fill="#d97706"/>
+                <text x="50" y="55" font-family="'Inter', sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">TOFFEE</text>
+            </svg>`;
+
+        case "disney":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="45" r="20" fill="#0284c7"/>
+                <circle cx="34" cy="30" r="11" fill="#0284c7"/>
+                <circle cx="66" cy="30" r="11" fill="#0284c7"/>
+                <text x="50" y="85" font-family="'Inter', sans-serif" font-weight="900" font-size="10.5" fill="#0284c7" text-anchor="middle">DISNEY</text>
+            </svg>`;
+
+        case "cn":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="20" y="30" width="30" height="30" fill="#000000"/>
+                <rect x="50" y="30" width="30" height="30" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+                <text x="35" y="52" font-family="'Inter', sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">C</text>
+                <text x="65" y="52" font-family="'Inter', sans-serif" font-weight="900" font-size="20" fill="#000000" text-anchor="middle">N</text>
+            </svg>`;
+
+        case "natgeo":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <rect x="25" y="25" width="50" height="50" fill="none" stroke="#facc15" stroke-width="11"/>
+                <text x="50" y="88" font-family="'Inter', sans-serif" font-weight="900" font-size="9.5" fill="#000" text-anchor="middle">NAT GEO</text>
+            </svg>`;
+
+        case "discovery":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="45" r="22" fill="#0284c7"/>
+                <path d="M 50,23 L 55,40 L 72,40 L 58,50 L 63,67 L 50,56 L 37,67 L 42,50 L 28,40 L 45,40 Z" fill="#ffffff"/>
+                <text x="50" y="86" font-family="'Inter', sans-serif" font-weight="900" font-size="9.5" fill="#0284c7" text-anchor="middle">DISCOVERY</text>
+            </svg>`;
+
+        case "mtv":
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <text x="50" y="52" font-family="'Inter', sans-serif" font-weight="900" font-size="36" fill="#000000" text-anchor="middle" font-style="italic">M</text>
+                <rect x="45" y="48" width="30" height="15" fill="#e11d48" rx="2"/>
+                <text x="60" y="59" font-family="'Inter', sans-serif" font-weight="900" font-size="10.5" fill="#ffffff" text-anchor="middle">tv</text>
+            </svg>`;
+
+        default:
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+                <circle cx="50" cy="46" r="24" fill="${color}"/>
+                <text x="50" y="54" font-family="'Inter', sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">${name.slice(0, 2)}</text>
+            </svg>`;
     }
 }
+
+// Categories list matching image
+const categories = ["All", "Sports", "News", "Bangla", "Indian Bangla", "Hindi", "Kids", "Doc", "Music"];
+
+let hls;
+let activeChannelId = null;
+let activeCategory = "All";
+let searchQuery = "";
+
+// Initialize application state
+function initApp() {
+    renderCategories();
+    renderChannels();
+    
+    // Auto-select first channel (TSPORTS HD)
+    const initialChannel = channels.find(c => c.id === "tsports") || channels[0];
+    if (initialChannel) {
+        selectChannel(initialChannel.id);
+    }
+}
+
+// Render Category filter list
+function renderCategories() {
+    const container = document.getElementById("categoriesContainer");
+    container.innerHTML = categories.map(cat => `
+        <div class="category-chip ${cat === activeCategory ? 'active' : ''}" 
+             onclick="selectCategory(this, '${cat}')">
+            ${cat}
+        </div>
+    `).join("");
+}
+
+// Handle Category click events
+function selectCategory(element, category) {
+    document.querySelectorAll(".category-chip").forEach(chip => {
+        chip.classList.remove("active");
+    });
+    element.classList.add("active");
+    activeCategory = category;
+    renderChannels();
+}
+
+// Real-time Search input binding
+function handleSearch() {
+    searchQuery = document.getElementById("searchInput").value.toLowerCase();
+    renderChannels();
+}
+
+// Render dynamic 5-column channel grid
+function renderChannels() {
+    const grid = document.getElementById("channelsGrid");
+    
+    const filtered = channels.filter(ch => {
+        const matchesCategory = activeCategory === "All" || ch.category === activeCategory;
+        const matchesSearch = ch.name.toLowerCase().includes(searchQuery);
+        return matchesCategory && matchesSearch;
+    });
+    
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: span 5; text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 13px;">
+                No channels found
+            </div>`;
+        return;
+    }
+    
+    grid.innerHTML = filtered.map(ch => `
+        <div class="channel-card ${ch.id === activeChannelId ? 'active' : ''}" 
+             id="card-${ch.id}"
+             onclick="selectChannel('${ch.id}')"
+             title="${ch.name}">
+            <div class="logo-circle">
+                ${getLogoSVG(ch)}
+            </div>
+            <div class="channel-title">${ch.name}</div>
+        </div>
+    `).join("");
+}
+
+// Channel Selection handler & HLS player setup
+function selectChannel(channelId) {
+    const ch = channels.find(c => c.id === channelId);
+    if (!ch) return;
+    
+    activeChannelId = channelId;
+    
+    // Update active highlight classes
+    document.querySelectorAll(".channel-card").forEach(card => {
+        card.classList.remove("active");
+    });
+    const activeCard = document.getElementById(`card-${channelId}`);
+    if (activeCard) {
+        activeCard.classList.add("active");
+    }
+    
+    // Update overlay text
+    document.getElementById("playerChannelTitle").textContent = ch.name;
+    
+    const video = document.getElementById("video");
+    const playBtn = document.getElementById("centerPlayBtn");
+    
+    playBtn.classList.add("hidden");
+    
+    if (hls) {
+        hls.destroy();
+    }
+    
+    if (Hls.isSupported()) {
+        hls = new Hls({
+            maxMaxBufferLength: 10,
+            enableWorker: true
+        });
+        hls.loadSource(ch.url);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            video.play().catch(e => {
+                console.log("Auto-play blocked, showing center play button overlay", e);
+                playBtn.classList.remove("hidden");
+            });
+        });
+        
+        // Dynamic fallback error handler
+        hls.on(Hls.Events.ERROR, function(event, data) {
+            if (data.fatal) {
+                switch(data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        console.log("HLS network error, attempting recovery...");
+                        hls.startLoad();
+                        break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        console.log("HLS media error, attempting recovery...");
+                        hls.recoverMediaError();
+                        break;
+                    default:
+                        console.log("HLS player fatal error, falling back...");
+                        hls.destroy();
+                        playBtn.classList.remove("hidden");
+                        break;
+                }
+            }
+        });
+    }
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native Safari HLS support
+        video.src = ch.url;
+        video.play().catch(e => {
+            console.log("Auto-play blocked, showing center play button overlay", e);
+            playBtn.classList.remove("hidden");
+        });
+    }
+}
+
+// Center play overlay helper
+function togglePlay() {
+    const video = document.getElementById("video");
+    const playBtn = document.getElementById("centerPlayBtn");
+    if (video.paused) {
+        video.play().then(() => {
+            playBtn.classList.add("hidden");
+        }).catch(err => console.error("Play failed:", err));
+    } else {
+        video.pause();
+        playBtn.classList.remove("hidden");
+    }
+}
+
+// Toast notification helper
+function showDownloadToast() {
+    const toast = document.getElementById("toast");
+    toast.classList.add("show");
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3000);
+}
+
+// Listen for DOM load to initialize
+document.addEventListener("DOMContentLoaded", initApp);
 </script>
 
 </body>
